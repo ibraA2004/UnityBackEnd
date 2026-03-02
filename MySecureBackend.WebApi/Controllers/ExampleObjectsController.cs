@@ -9,7 +9,7 @@ namespace MySecureBackend.WebApi.Controllers;
 [Route("[controller]")]
 [Consumes("application/json")]
 [Produces("application/json")]
-public class ExampleObjectsController : ControllerBase
+public class ExampleObjectsController : ControllerBase  
 {
     private readonly IExampleObjectRepository _exampleObjectRepository;
     private readonly IAuthenticationService _authenticationService;
