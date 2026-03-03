@@ -26,6 +26,17 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.Configure<RouteOptions>(o => o.LowercaseUrls = true);
 
+// Register CORS policy for Unity/external clients
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUnity", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Register authorization services for securing endpoints.
 builder.Services.AddAuthorization();
 
@@ -35,6 +46,10 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
     options.User.RequireUniqueEmail = true;
     options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false; // Allow passwords without special characters (development only!)
+    options.Password.RequireDigit = false; // Allow passwords without numbers
+    options.Password.RequireUppercase = false; // Allow passwords without uppercase
+    options.Password.RequireLowercase = false; // Allow passwords without lowercase
 })
 .AddRoles<IdentityRole>()
 .AddDapperStores(options =>
@@ -52,6 +67,10 @@ builder.Services.AddTransient<IExampleObjectRepository, MemoryExampleObjectRepos
 
 // To use a SQL-backed repository instead, uncomment the following line:
 //builder.Services.AddTransient<IExampleObjectRepository, SqlExampleObjectRepository>(o => new SqlExampleObjectRepository(sqlConnectionString!));
+
+// Register Environment2D and Object2D repositories
+builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvironment2DRepository(sqlConnectionString!));
+builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString!));
 
 var app = builder.Build();
 
@@ -82,12 +101,14 @@ else
 // Enforce HTTPS for all requests.
 app.UseHttpsRedirection();
 
+// Enable CORS for Unity/external clients
+app.UseCors("AllowUnity");
+
 // Enable authorization middleware.
 app.UseAuthorization();
 
 // Register Identity endpoints for account management (register, login, etc.) under /account.
-// 👇 uncomment the following line to enable Identity API endpoints to use authentication/authorization
-//app.MapGroup("/account").MapIdentityApi<IdentityUser>().WithTags("Account");
+app.MapGroup("/account").MapIdentityApi<IdentityUser>().WithTags("Account");
 
 // Register all controller endpoints for the application.
 app.MapControllers();
