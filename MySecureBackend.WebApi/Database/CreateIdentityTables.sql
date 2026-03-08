@@ -2,6 +2,9 @@
 -- ASP.NET Core Identity Tables Creation Script for Azure SQL Database
 -- Database: db2244960
 -- Server: avansict2244960.database.windows.net
+-- 
+-- BELANGRIJK: Selecteer 'db2244960' in de database dropdown BOVEN in SSMS!
+--             Azure SQL ondersteunt geen USE statement!
 -- =============================================================================
 
 -- Create Identity Schema
@@ -145,6 +148,7 @@ BEGIN
         [OwnerUserId] NVARCHAR(450) NOT NULL,
         [MaxLength] INT NOT NULL,
         [MaxHeight] INT NOT NULL,
+        [BackgroundIndex] INT NOT NULL DEFAULT -1, -- -1 = geen background, 0-3 = specifieke backgrounds
         CONSTRAINT [PK_Environment2D] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Environment2D_AspNetUsers_OwnerUserId] FOREIGN KEY ([OwnerUserId]) REFERENCES [auth].[AspNetUsers] ([Id]) ON DELETE CASCADE
     )
