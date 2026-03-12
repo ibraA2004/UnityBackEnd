@@ -5,7 +5,6 @@ using MySecureBackend.WebApi.Repositories;
 using MySecureBackend.WebApi.Services;
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.Resource;
 
@@ -103,9 +102,8 @@ var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"];
 // Register OpenAPI/Swagger endpoints.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger()
-.RequireAuthorization();
-    app.UseSwaggerUI((HttpContext httpContext)=>options =>
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "MySecureBackend API v1");
         options.RoutePrefix = "swagger";

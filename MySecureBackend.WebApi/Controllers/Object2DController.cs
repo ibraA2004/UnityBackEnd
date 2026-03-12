@@ -7,8 +7,8 @@ using MySecureBackend.WebApi.Services;
 namespace MySecureBackend.WebApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]  
-    [Consumes("application/json")]  
+    [Route("[controller]")]
+    [Consumes("application/json")]
     [Produces("application/json")]
     public class Object2DController : ControllerBase
     {
