@@ -10,7 +10,7 @@ namespace MySecureBackend.WebApi.Controllers
     [Route("[controller]")]
     [Consumes("application/json")]
     [Produces("application/json")]
-    public class Object2DController : ControllerBase
+    public class Object2DController : ControllerBase  
     {
         private readonly IObject2DRepository _repository;
         private readonly IAuthenticationService _authenticationService;
