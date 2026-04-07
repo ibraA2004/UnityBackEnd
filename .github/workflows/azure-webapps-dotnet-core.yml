@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: 'mysecurebackend-api'    # TODO: set this to your application's name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'              # set this to the path to your web app project
-  DOTNET_VERSION: '10.0.x'                    # set this to the .NET core version to use
+  AZURE_WEBAPP_NAME: 'avansict2244960'      # TODO: Zorg dat deze naam klopt met je Azure App Service naam
+  AZURE_WEBAPP_PACKAGE_PATH: 'MySecureBackend.WebApi' # Pad naar je API project
+  DOTNET_VERSION: '10.0.x'                    # .NET versie
 
 jobs:
   build:
