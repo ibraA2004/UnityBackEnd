@@ -5,8 +5,16 @@ using MySecureBackend.WebApi.Repositories;
 using MySecureBackend.WebApi.Services;
 using System.Reflection;
 using System.Text;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.Resource;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
+        .EnableTokenAcquisitionToCallDownstreamApi()
+            .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
+            .AddInMemoryTokenCaches();
 
 // Register MVC controllers with camelCase JSON (compatible with Unity Newtonsoft.Json)
 builder.Services.AddControllers()
@@ -14,6 +22,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
+
 
 // Retrieve the SQL connection string from configuration.
 var sqlConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
@@ -87,6 +96,8 @@ builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvir
 builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString!));
 
 var app = builder.Build();
+
+var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"];
 
 // Register OpenAPI/Swagger endpoints.
 if (app.Environment.IsDevelopment())
