@@ -5,31 +5,17 @@ using MySecureBackend.WebApi.Repositories;
 using MySecureBackend.WebApi.Services;
 using System.Reflection;
 using System.Text;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi()
-            .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
-            .AddInMemoryTokenCaches();
-
-// Register MVC controllers with camelCase JSON (compatible with Unity Newtonsoft.Json)
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    });
-
-
-// Retrieve the SQL connection string from configuration.
+// Retrieve SQL connection string
 var sqlConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
 var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
 
-// JWT Configuration
-var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? "MySecureSecretKey12345678901234567890"; // 256-bit key
+// JWT Key
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? "MySecureSecretKey12345678901234567890";
+
+// --- Authentication & Authorization ---
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -49,13 +35,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Register OpenAPI/Swagger for API documentation and testing.
+builder.Services.AddAuthorization();
+
+// --- Controllers & JSON ---
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
+// --- Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<RouteOptions>(o => o.LowercaseUrls = true);
-
-// Register CORS policy for Unity/external clients
+// --- CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUnity", policy =>
@@ -66,10 +59,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register authorization services for securing endpoints.
-builder.Services.AddAuthorization();
-
-// Register ASP.NET Core Identity with Dapper stores for user authentication and management.
+// --- Identity + Dapper stores ---
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -82,24 +72,21 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 .AddRoles<IdentityRole>()
 .AddDapperStores(options =>
 {
-    options.ConnectionString = sqlConnectionString;
+    options.ConnectionString = sqlConnectionString!;
 });
 
-// Register services
+// --- Services & Repositories ---
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IAuthenticationService, AspNetIdentityAuthenticationService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 
-// Register application repositories
 builder.Services.AddTransient<IExampleObjectRepository, MemoryExampleObjectRepository>();
 builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvironment2DRepository(sqlConnectionString!));
 builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString!));
 
 var app = builder.Build();
 
-var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"];
-
-// Register OpenAPI/Swagger endpoints.
+// --- Swagger / Health check ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -124,7 +111,6 @@ app.UseCors("AllowUnity");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Register all controller endpoints
 app.MapControllers();
 
 app.Run();
