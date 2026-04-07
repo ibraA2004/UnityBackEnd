@@ -41,11 +41,18 @@ namespace MySecureBackend.WebApi.Repositories
 
         public async Task<Environment2D> CreateAsync(Environment2D environment)
         {
+            // Zorg dat Id gezet is
+            if (string.IsNullOrEmpty(environment.Id))
+            {
+                environment.Id = Guid.NewGuid().ToString();
+            }
+
             using var connection = new SqlConnection(sqlConnectionString);
             await connection.ExecuteAsync(
                 "INSERT INTO [Environment2D] (Id, Name, OwnerUserId, MaxLength, MaxHeight) VALUES (@Id, @Name, @OwnerUserId, @MaxLength, @MaxHeight)",
                 environment
             );
+
             return environment;
         }
 

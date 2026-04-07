@@ -25,7 +25,7 @@ builder.Services.AddControllers()
 
 
 // Retrieve the SQL connection string from configuration.
-var sqlConnectionString = builder.Configuration.GetValue<string>("SqlConnectionString");
+var sqlConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
 var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
 
 // JWT Configuration
