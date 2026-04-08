@@ -115,8 +115,8 @@ app.UseCors("AllowUnity");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Identity endpoints for Unity register/login
-app.MapGroup("/account").MapIdentityApi<IdentityUser>().WithTags("Account");
+// Identity endpoints are implemented by AccountController ("/account/register", "/account/login").
+// Do not map MapIdentityApi here to avoid duplicate routes and Swagger conflicts.
 
 // Register all controller endpoints
 app.MapControllers();
