@@ -78,8 +78,8 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.PUBLISH_DIRECTORY }}
 
-      - name: Zip publish folder
-        run: zip -r deploy.zip ${{ env.PUBLISH_DIRECTORY }}
+      - name: Check publish folder
+        run: ls -R ${{ env.PUBLISH_DIRECTORY }}
 
       - name: Deploy naar Azure via ZIP-deploy
         uses: azure/webapps-deploy@v3
