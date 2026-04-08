@@ -1,4 +1,4 @@
-name: Build, Test en Deploy .NET Core WebApi naar Azure App Service
+name: Build, Test en Deploy .NET Core WebApi naar Azure App Service (ZIP-deploy)
 
 env:
   ARTIFACT_NAME: WebApi
@@ -15,7 +15,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check of AZURE_WEBAPP_NAME secret bestaat
+      - name: Check AZURE_WEBAPP_NAME secret
         env:
           super_secret: ${{ secrets.AZURE_WEBAPP_NAME }}
         if: ${{ env.super_secret == '' }}
@@ -23,7 +23,7 @@ jobs:
           echo "Het repository secret 'AZURE_WEBAPP_NAME' bestaat niet."
           exit 1
 
-      - name: Check of WEBAPI_PROJECT_NAME secret bestaat
+      - name: Check WEBAPI_PROJECT_NAME secret
         env:
           super_secret: ${{ secrets.WEBAPI_PROJECT_NAME }}
         if: ${{ env.super_secret == '' }}
@@ -31,7 +31,7 @@ jobs:
           echo "Het repository secret 'WEBAPI_PROJECT_NAME' bestaat niet."
           exit 1
 
-      - name: Check of AZURE_WEBAPP_PUBLISH_PROFILE secret bestaat
+      - name: Check AZURE_WEBAPP_PUBLISH_PROFILE secret
         env:
           super_secret: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         if: ${{ env.super_secret == '' }}
@@ -78,13 +78,12 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.PUBLISH_DIRECTORY }}
 
-      - name: Zip de publish folder
+      - name: Zip publish folder
         run: zip -r deploy.zip ${{ env.PUBLISH_DIRECTORY }}
 
-      - name: Deploy naar Azure App Service
+      - name: Deploy naar Azure via ZIP-deploy
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: 'deploy.zip'
-          clean: true
