@@ -16,7 +16,9 @@ builder.Services.AddControllers()
     });
 
 // Retrieve the SQL connection string from configuration.
-var sqlConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
+// Support both keys so local user-secrets and Azure App Settings can use either naming.
+var sqlConnectionString = builder.Configuration.GetValue<string>("SqlConnectionString")
+    ?? builder.Configuration.GetValue<string>("DefaultConnection");
 var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
 
 // JWT Configuration
@@ -112,6 +114,9 @@ app.UseHttpsRedirection();
 app.UseCors("AllowUnity");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Identity endpoints for Unity register/login
+app.MapGroup("/account").MapIdentityApi<IdentityUser>().WithTags("Account");
 
 // Register all controller endpoints
 app.MapControllers();
