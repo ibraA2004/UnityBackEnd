@@ -16,9 +16,23 @@ builder.Services.AddControllers()
     });
 
 // Retrieve the SQL connection string from configuration.
-// Support both keys so local user-secrets and Azure App Settings can use either naming.
+// Support multiple keys so local user-secrets and Azure App Settings can use either naming.
 var sqlConnectionString = builder.Configuration.GetValue<string>("SqlConnectionString")
-    ?? builder.Configuration.GetValue<string>("DefaultConnection");
+    ?? builder.Configuration.GetValue<string>("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(sqlConnectionString))
+{
+    throw new InvalidOperationException("SqlConnectionString (or DefaultConnection) is not configured.");
+}
+
+// Ensure the connection string targets a specific database (Initial Catalog / Database)
+if (!sqlConnectionString.Contains("Initial Catalog=", StringComparison.OrdinalIgnoreCase)
+    && !sqlConnectionString.Contains("Database=", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException("Connection string must include 'Initial Catalog' or 'Database' (target database).");
+}
+
 var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
 
 // JWT Configuration
@@ -65,7 +79,7 @@ builder.Services.AddAuthorization();
 // Register ASP.NET Core Identity with Dapper stores for user authentication and management.
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
-    options.User.RequireUniqueEmail = true;
+    options.User.RequireUniqueEmail = false;
     options.Password.RequiredLength = 8;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireDigit = false;
@@ -85,8 +99,8 @@ builder.Services.AddTransient<IJwtService, JwtService>();
 
 // Register application repositories
 builder.Services.AddTransient<IExampleObjectRepository, MemoryExampleObjectRepository>();
-builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvironment2DRepository(sqlConnectionString!));
-builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString!));
+builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvironment2DRepository(sqlConnectionString));
+builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString));
 
 var app = builder.Build();
 
@@ -115,10 +129,6 @@ app.UseCors("AllowUnity");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Identity endpoints are implemented by AccountController ("/account/register", "/account/login").
-// Do not map MapIdentityApi here to avoid duplicate routes and Swagger conflicts.
-
-// Register all controller endpoints
 app.MapControllers();
 
 app.Run();
