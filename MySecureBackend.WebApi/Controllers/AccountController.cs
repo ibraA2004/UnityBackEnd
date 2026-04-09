@@ -85,8 +85,7 @@ public class AccountController : ControllerBase
         {
             token = token,
             userId = identityUser.Id,
-            username = identityUser.UserName,
-            email = identityUser.Email
+            username = identityUser.UserName
         });
     }
 

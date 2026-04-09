@@ -98,7 +98,7 @@ builder.Services.AddTransient<IAuthenticationService, AspNetIdentityAuthenticati
 builder.Services.AddTransient<IJwtService, JwtService>();
 
 // Register application repositories
-builder.Services.AddTransient<IExampleObjectRepository, MemoryExampleObjectRepository>();
+// Note: ExampleObject endpoints/repository removed as it's unused
 builder.Services.AddTransient<IEnvironment2DRepository>(provider => new SqlEnvironment2DRepository(sqlConnectionString));
 builder.Services.AddTransient<IObject2DRepository>(provider => new SqlObject2DRepository(sqlConnectionString));
 
